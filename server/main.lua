@@ -13,37 +13,57 @@ RegisterCommand(Config.CommandName, function(source, args, rawCommand)
     TriggerClientEvent('elegant_pedmenu:openMenu', source)
 end, false)
 
--- Event for setting a player's ped model
+-- Event for setting a player's ped model with optional clothing
 RegisterNetEvent('elegant_pedmenu:setPedModel')
-AddEventHandler('elegant_pedmenu:setPedModel', function(modelHash)
+AddEventHandler('elegant_pedmenu:setPedModel', function(modelHash, clothingType)
     local source = source
     
-    -- Just to ensure model exists (security check)
+    -- Verify the model exists in the ensured list (security check)
     local modelExists = false
-    for _, category in ipairs(Config.Categories) do
-        for _, model in ipairs(category.models) do
-            if model.hash == modelHash then
-                modelExists = true
-                break
-            end
+    for _, ped in ipairs(Config.EnsuredPeds) do
+        if ped.hash == modelHash then
+            modelExists = true
+            break
         end
-        if modelExists then break end
     end
     
     if not modelExists then
-        -- If you have a notification system, you could use it here
-        print("^1[PEDMENU]^7: Player " .. source .. " tried to use an invalid model!")
+        -- Log security warning and return if invalid model
+        print("^1[PEDMENU]^7: Player " .. source .. " tried to use an invalid model: " .. tostring(modelHash))
         return
     end
     
-    -- We trigger the client event to change the model
-    TriggerClientEvent('elegant_pedmenu:changePedModel', source, modelHash)
+    -- Verify the clothing type if provided
+    if clothingType then
+        local validClothing = false
+        for _, outfit in ipairs(Config.Outfits) do
+            if outfit.type == clothingType then
+                validClothing = true
+                break
+            end
+        end
+        
+        if not validClothing then
+            print("^3[PEDMENU]^7: Player " .. source .. " tried to use an invalid clothing type: " .. tostring(clothingType))
+            -- Continue anyway with just the model, not the invalid clothing
+            clothingType = nil
+        end
+    end
+    
+    -- Trigger the client event to change the model with optional clothing
+    TriggerClientEvent('elegant_pedmenu:changePedModel', source, modelHash, clothingType)
 end)
 
 -- Debug event to log when a player changes their model
 RegisterNetEvent('elegant_pedmenu:modelChanged')
-AddEventHandler('elegant_pedmenu:modelChanged', function(modelHash)
+AddEventHandler('elegant_pedmenu:modelChanged', function(modelHash, clothingType)
     local source = source
     local playerName = GetPlayerName(source)
-    print("^2[PEDMENU]^7: " .. playerName .. " changed their model to " .. modelHash)
+    
+    local logMessage = "^2[PEDMENU]^7: " .. playerName .. " changed their model to " .. modelHash
+    if clothingType then
+        logMessage = logMessage .. " with " .. clothingType .. " outfit"
+    end
+    
+    print(logMessage)
 end)

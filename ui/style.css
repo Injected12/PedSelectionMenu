@@ -32,12 +32,12 @@ body.preview-mode {
 #ped-menu {
     position: absolute;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80vw;
+    left: 0;
+    transform: translateY(-50%);
+    width: 300px;
     height: 80vh;
-    background-color: rgba(0, 0, 0, 0.9);
-    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.7); /* More transparent */
+    border-radius: 0 10px 10px 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -48,24 +48,43 @@ body.preview-mode {
 /* Menu header */
 .menu-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
+    flex-direction: column;
+    padding: 10px 15px;
     background-color: var(--primary-color);
     border-bottom: 2px solid var(--secondary-color);
 }
 
 .menu-header h1 {
     color: var(--text-color);
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.key-controls {
+    font-size: 12px;
+    color: var(--highlight-color);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.key-controls span {
+    margin-right: 10px;
+}
+
+.key-controls i {
+    font-size: 10px;
 }
 
 #close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
     background: none;
     border: none;
     color: var(--text-color);
-    font-size: 20px;
+    font-size: 16px;
     cursor: pointer;
     transition: color 0.2s;
 }
@@ -77,212 +96,92 @@ body.preview-mode {
 /* Menu content */
 .menu-content {
     display: flex;
+    flex-direction: column;
     flex: 1;
     overflow: hidden;
 }
 
-/* Categories section */
-.categories {
-    width: 20%;
-    background-color: var(--primary-color);
-    border-right: 1px solid var(--secondary-color);
-    display: flex;
+/* Menu sections */
+.menu-section {
+    display: none;
     flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.6);
 }
 
-.categories-header {
-    padding: 15px;
+.menu-section.active {
+    display: flex;
+}
+
+.section-header {
+    padding: 10px 15px;
     border-bottom: 1px solid var(--secondary-color);
+    background-color: var(--primary-color);
 }
 
-.categories-header h2 {
+.section-header h2 {
     color: var(--text-color);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 500;
 }
 
-.category-list {
+/* Item list for peds/clothing */
+.item-list {
     flex: 1;
     overflow-y: auto;
-    padding: 10px 0;
+    padding: 5px 0;
 }
 
-.category-item {
-    padding: 12px 15px;
+.menu-item {
+    padding: 10px 15px;
     color: var(--text-color);
-    cursor: pointer;
-    transition: background-color 0.2s;
     border-left: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s;
 }
 
-.category-item:hover {
-    background-color: var(--secondary-color);
-}
-
-.category-item.active {
+.menu-item.focused {
     background-color: var(--secondary-color);
     border-left: 3px solid var(--highlight-color);
 }
 
-/* Models section */
-.models {
-    width: 50%;
-    background-color: var(--secondary-color);
-    border-right: 1px solid var(--secondary-color);
-    display: flex;
-    flex-direction: column;
-}
-
-.models-header {
-    padding: 15px;
-    border-bottom: 1px solid var(--secondary-color);
-    display: flex;
-    flex-direction: column;
-}
-
-.models-header h2 {
-    color: var(--text-color);
+.menu-item-icon {
     font-size: 18px;
-    font-weight: 500;
-    margin-bottom: 10px;
-}
-
-.search-container {
-    position: relative;
-    margin-top: 5px;
-}
-
-#search-input {
-    width: 100%;
-    padding: 10px 30px 10px 10px;
-    background-color: var(--secondary-color);
-    border: none;
-    border-radius: 5px;
-    color: var(--text-color);
-    outline: none;
-}
-
-.search-container i {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
+    margin-right: 10px;
     color: var(--highlight-color);
 }
 
-.model-list {
+.menu-item-label {
     flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
-}
-
-.model-item {
-    background-color: var(--secondary-color);
-    border-radius: 5px;
     overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 15px 10px;
-}
-
-.model-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-    background-color: var(--tertiary-color);
-}
-
-.model-item.active {
-    border: 2px solid var(--highlight-color);
-    background-color: var(--tertiary-color);
-}
-
-.model-icon {
-    font-size: 30px;
-    margin-bottom: 10px;
-    color: var(--highlight-color);
-}
-
-.model-name {
-    color: var(--text-color);
-    font-size: 12px;
-    text-align: center;
-    word-break: break-word;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Preview section */
-.preview {
-    width: 30%;
-    background-color: var(--primary-color);
-    display: flex;
-    flex-direction: column;
-}
-
-.preview-header {
+.preview-section {
     padding: 15px;
-    border-bottom: 1px solid var(--secondary-color);
+    background-color: var(--primary-color);
+    border-top: 1px solid var(--secondary-color);
 }
 
-.preview-header h2 {
-    color: var(--text-color);
-    font-size: 18px;
-    font-weight: 500;
-}
-
-.preview-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 20px;
-}
-
-#preview-info {
-    color: var(--text-color);
-    text-align: center;
-    margin-top: 40px;
-}
-
-#preview-info h3 {
+.preview-section h3 {
     margin-bottom: 10px;
-    font-size: 20px;
-}
-
-#preview-info p {
-    color: var(--highlight-color);
-    margin-bottom: 10px;
-}
-
-.preview-actions {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-}
-
-.action-button {
-    padding: 12px 20px;
-    background-color: var(--secondary-color);
-    color: var(--text-color);
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s;
     font-size: 16px;
-    min-width: 150px;
+    color: var(--text-color);
 }
 
-.action-button:hover:not(:disabled) {
-    background-color: var(--tertiary-color);
+.preview-section p {
+    color: var(--highlight-color);
+    margin-bottom: 5px;
+    font-size: 12px;
 }
 
-.action-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+#selected-model-name {
+    color: var(--highlight-color);
+    font-weight: bold;
 }
 
 /* Scrollbar styling */

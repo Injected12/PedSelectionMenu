@@ -10,45 +10,45 @@
 <body>
     <div id="ped-menu">
         <div class="menu-header">
-            <h1>Character Models</h1>
+            <h1>Ped Selector</h1>
+            <div class="key-controls">
+                <span><i class="fas fa-arrow-up"></i>/<i class="fas fa-arrow-down"></i> Navigate</span>
+                <span><i class="fas fa-arrow-left"></i>/<i class="fas fa-arrow-right"></i> Change Menu</span>
+                <span>Enter: Select</span>
+                <span>ESC: Close</span>
+            </div>
             <button id="close-button"><i class="fas fa-times"></i></button>
         </div>
         
         <div class="menu-content">
-            <div class="categories">
-                <div class="categories-header">
-                    <h2>Categories</h2>
+            <!-- Single column layout that's navigable with arrow keys -->
+            <div id="main-menu" class="menu-section active">
+                <div class="section-header">
+                    <h2>PEDS</h2>
                 </div>
-                <div id="category-list" class="category-list">
-                    <!-- Categories will be populated here -->
-                </div>
-            </div>
-            
-            <div class="models">
-                <div class="models-header">
-                    <h2 id="current-category">Select a Category</h2>
-                    <div class="search-container">
-                        <input type="text" id="search-input" placeholder="Search models...">
-                        <i class="fas fa-search"></i>
-                    </div>
-                </div>
-                <div id="model-list" class="model-list">
-                    <!-- Models will be populated here -->
+                
+                <div id="ped-list" class="item-list">
+                    <!-- Ped models will be populated here -->
                 </div>
             </div>
             
-            <div class="preview">
-                <div class="preview-header">
-                    <h2>Preview</h2>
+            <!-- Clothing menu (initially hidden) -->
+            <div id="clothing-menu" class="menu-section">
+                <div class="section-header">
+                    <h2>Clothing</h2>
                 </div>
-                <div class="preview-content">
-                    <div id="preview-info">
-                        <p>No model selected</p>
-                    </div>
-                    <div class="preview-actions">
-                        <button id="select-button" class="action-button" disabled>Select Model</button>
-                    </div>
+                
+                <div id="clothing-list" class="item-list">
+                    <!-- Clothing options will be populated here -->
                 </div>
+            </div>
+            
+            <!-- Preview section -->
+            <div id="preview-info" class="preview-section">
+                <h3>Selected Model: <span id="selected-model-name">None</span></h3>
+                <p>Use <i class="fas fa-arrow-up"></i> and <i class="fas fa-arrow-down"></i> to navigate</p>
+                <p>Press Enter to select</p>
+                <p>Press ESC to close</p>
             </div>
         </div>
     </div>

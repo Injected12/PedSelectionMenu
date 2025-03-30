@@ -4,13 +4,37 @@
 local menuVisible = false
 local currentPed = nil
 
+-- Function to get ensured ped models
+function GetEnsuredPeds()
+    local ensuredPeds = {}
+    local existingHashes = {}
+    
+    -- Convert configured peds to a simple list format
+    for _, ped in ipairs(Config.EnsuredPeds) do
+        -- Check if this hash hasn't been added yet (avoid duplicates)
+        if not existingHashes[ped.hash] then
+            table.insert(ensuredPeds, {
+                label = ped.label,
+                hash = ped.hash
+            })
+            existingHashes[ped.hash] = true
+        end
+    end
+    
+    return ensuredPeds
+end
+
 -- Function to open the menu
 function OpenPedMenu()
     menuVisible = true
     SetNuiFocus(true, true)
+    
+    -- Get only the ensured peds
+    local peds = GetEnsuredPeds()
+    
     SendNUIMessage({
         type = "open",
-        categories = Config.Categories,
+        peds = peds,
         colors = Config.UI.colors
     })
 end
@@ -27,13 +51,17 @@ RegisterKeyMapping('/' .. Config.CommandName, 'Open Ped Selection Menu', 'keyboa
 RegisterNUICallback('close', function(data, cb)
     menuVisible = false
     SetNuiFocus(false, false)
+    
+    -- Delete preview ped if exists
     if currentPed then
         DeleteEntity(currentPed)
         currentPed = nil
     end
+    
     cb('ok')
 end)
 
+-- Preview the ped model
 RegisterNUICallback('preview', function(data, cb)
     local modelHash = data.model
     
@@ -65,7 +93,6 @@ RegisterNUICallback('preview', function(data, cb)
         local playerHeading = GetEntityHeading(playerPed)
         
         -- Create preview ped slightly in front of player
-        local x, y, z = table.unpack(playerCoords)
         local offset = GetOffsetFromEntityInWorldCoords(playerPed, 0.0, 2.0, 0.0)
         
         currentPed = CreatePed(4, modelHash, offset.x, offset.y, offset.z, playerHeading - 180.0, false, false)
@@ -80,7 +107,7 @@ RegisterNUICallback('preview', function(data, cb)
         SetPedCanRagdoll(currentPed, false)
         SetModelAsNoLongerNeeded(modelHash)
         
-        -- Play an animation
+        -- Play an animation for preview
         RequestAnimDict("mini@strip_club@idles@bouncer@base")
         while not HasAnimDictLoaded("mini@strip_club@idles@bouncer@base") do
             Wait(10)
@@ -93,8 +120,10 @@ RegisterNUICallback('preview', function(data, cb)
     end
 end)
 
+-- Select a ped and outfit
 RegisterNUICallback('select', function(data, cb)
     local modelHash = data.model
+    local clothingType = data.clothing
     
     -- Clean up preview ped
     if currentPed then
@@ -103,14 +132,76 @@ RegisterNUICallback('select', function(data, cb)
     end
     
     -- Request to change ped model from server
-    TriggerServerEvent('elegant_pedmenu:setPedModel', modelHash)
+    TriggerServerEvent('elegant_pedmenu:setPedModel', modelHash, clothingType)
     
     cb('ok')
 end)
 
+-- Apply a specific outfit to the current ped
+function ApplyOutfit(ped, outfitType)
+    -- Clear any previous outfit
+    ClearAllPedProps(ped)
+    SetPedComponentVariation(ped, 0, 0, 0, 2)  -- Face
+    SetPedComponentVariation(ped, 1, 0, 0, 2)  -- Mask
+    SetPedComponentVariation(ped, 2, 0, 0, 2)  -- Hair
+    SetPedComponentVariation(ped, 3, 0, 0, 2)  -- Torso
+    SetPedComponentVariation(ped, 4, 0, 0, 2)  -- Legs
+    SetPedComponentVariation(ped, 5, 0, 0, 2)  -- Hands/Parachute
+    SetPedComponentVariation(ped, 6, 0, 0, 2)  -- Feet
+    SetPedComponentVariation(ped, 7, 0, 0, 2)  -- Neck/Accessories
+    SetPedComponentVariation(ped, 8, 0, 0, 2)  -- Undershirt
+    SetPedComponentVariation(ped, 9, 0, 0, 2)  -- Body Armor
+    SetPedComponentVariation(ped, 10, 0, 0, 2) -- Decals
+    SetPedComponentVariation(ped, 11, 0, 0, 2) -- Torso 2
+    
+    -- Apply outfit based on type
+    if outfitType == "casual" then
+        -- Apply casual clothing
+        SetPedComponentVariation(ped, 3, 0, 0, 2)  -- Torso
+        SetPedComponentVariation(ped, 4, 1, 0, 2)  -- Legs (jeans)
+        SetPedComponentVariation(ped, 6, 1, 0, 2)  -- Feet (sneakers)
+        SetPedComponentVariation(ped, 8, 0, 0, 2)  -- Undershirt
+        SetPedComponentVariation(ped, 11, 0, 0, 2) -- Torso 2 (t-shirt)
+    elseif outfitType == "formal" then
+        -- Apply formal/suit clothing
+        SetPedComponentVariation(ped, 3, 1, 0, 2)  -- Torso
+        SetPedComponentVariation(ped, 4, 0, 0, 2)  -- Legs (suit pants)
+        SetPedComponentVariation(ped, 6, 3, 0, 2)  -- Feet (dress shoes)
+        SetPedComponentVariation(ped, 8, 0, 0, 2)  -- Undershirt
+        SetPedComponentVariation(ped, 11, 4, 0, 2) -- Torso 2 (suit jacket)
+    elseif outfitType == "beach" then
+        -- Apply beach clothing
+        SetPedComponentVariation(ped, 3, 15, 0, 2) -- Torso (bare)
+        SetPedComponentVariation(ped, 4, 15, 0, 2) -- Legs (shorts)
+        SetPedComponentVariation(ped, 6, 5, 0, 2)  -- Feet (sandals)
+        SetPedComponentVariation(ped, 11, 15, 0, 2) -- Torso 2 (bare/swim)
+    elseif outfitType == "sports" then
+        -- Apply sports clothing
+        SetPedComponentVariation(ped, 3, 5, 0, 2)  -- Torso
+        SetPedComponentVariation(ped, 4, 3, 0, 2)  -- Legs (track pants)
+        SetPedComponentVariation(ped, 6, 1, 0, 2)  -- Feet (sneakers)
+        SetPedComponentVariation(ped, 8, 0, 0, 2)  -- Undershirt
+        SetPedComponentVariation(ped, 11, 1, 0, 2) -- Torso 2 (track jacket)
+    elseif outfitType == "police" then
+        -- Apply police outfit
+        SetPedComponentVariation(ped, 3, 0, 0, 2)  -- Torso
+        SetPedComponentVariation(ped, 4, 35, 0, 2) -- Legs
+        SetPedComponentVariation(ped, 6, 25, 0, 2) -- Feet
+        SetPedComponentVariation(ped, 8, 58, 0, 2) -- Undershirt
+        SetPedComponentVariation(ped, 11, 55, 0, 2) -- Torso 2
+    else
+        -- Default outfit if none matched
+        SetPedComponentVariation(ped, 3, 0, 0, 2)  -- Torso
+        SetPedComponentVariation(ped, 4, 0, 0, 2)  -- Legs
+        SetPedComponentVariation(ped, 6, 0, 0, 2)  -- Feet
+        SetPedComponentVariation(ped, 8, 0, 0, 2)  -- Undershirt
+        SetPedComponentVariation(ped, 11, 0, 0, 2) -- Torso 2
+    end
+end
+
 -- Event to change the player's model
 RegisterNetEvent('elegant_pedmenu:changePedModel')
-AddEventHandler('elegant_pedmenu:changePedModel', function(modelHash)
+AddEventHandler('elegant_pedmenu:changePedModel', function(modelHash, clothingType)
     -- Convert string to hash if it's not a number
     if type(modelHash) == 'string' then
         modelHash = GetHashKey(modelHash)
@@ -142,6 +233,11 @@ AddEventHandler('elegant_pedmenu:changePedModel', function(modelHash)
         SetEntityCoords(newPed, pos.x, pos.y, pos.z, false, false, false, false)
         SetEntityHeading(newPed, heading)
         
+        -- Apply clothing if specified
+        if clothingType then
+            ApplyOutfit(newPed, clothingType)
+        end
+        
         -- Clear any animations
         ClearPedTasksImmediately(newPed)
         
@@ -149,7 +245,7 @@ AddEventHandler('elegant_pedmenu:changePedModel', function(modelHash)
         SetModelAsNoLongerNeeded(modelHash)
         
         -- Notify the server that model was changed
-        TriggerServerEvent('elegant_pedmenu:modelChanged', modelHash)
+        TriggerServerEvent('elegant_pedmenu:modelChanged', modelHash, clothingType)
         
         -- Show notification
         ShowNotification("Model changed successfully!")
