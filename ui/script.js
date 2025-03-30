@@ -1,11 +1,16 @@
 // Menu State
 const state = {
-    currentMenu: 'main-menu', // 'main-menu' or 'clothing-menu'
+    currentMenu: 'main-menu', // 'main-menu', 'component-menu' or 'variation-menu'
     peds: [],
-    clothing: [],
+    components: [],
+    variations: [],
     focusedItemIndex: 0,
     selectedPed: null,
-    menuOpen: false
+    selectedComponent: null,
+    currentClothingDrawable: 0,
+    currentClothingTexture: 0,
+    menuOpen: false,
+    subMenuLevel: 0 // 0 = main, 1 = components, 2 = variations
 };
 
 // Elements
@@ -28,13 +33,15 @@ window.addEventListener('message', function(event) {
             document.documentElement.style.setProperty('--tertiary-color', data.colors.tertiary);
             document.documentElement.style.setProperty('--text-color', data.colors.text);
             document.documentElement.style.setProperty('--highlight-color', data.colors.highlight);
+            document.documentElement.style.setProperty('--accent-color', data.colors.accent);
         }
         
         // Show the menu
         openMenu();
         
-        // Populate peds - Only using ensured peds
+        // Populate peds and components
         populatePedList(data.peds);
+        state.components = data.components || [];
     }
 });
 
@@ -43,6 +50,7 @@ function openMenu() {
     document.body.classList.add('visible');
     state.menuOpen = true;
     state.currentMenu = 'main-menu';
+    state.subMenuLevel = 0;
     showMenu(state.currentMenu);
     state.focusedItemIndex = 0;
     updateFocus();
@@ -102,30 +110,143 @@ function populatePedList(peds) {
     }
 }
 
-// Populate clothing options
-function populateClothingList(pedHash) {
-    // In a real implementation, you would fetch the available clothing options
-    // for the selected ped from FiveM
-    state.clothing = getSampleClothing();
+// Populate clothing component options
+function populateComponentList() {
+    // Use the components from state (set when menu was opened)
     clothingList.innerHTML = '';
     
-    state.clothing.forEach((item, index) => {
+    state.components.forEach((component, index) => {
         const element = document.createElement('div');
         element.classList.add('menu-item');
         element.dataset.index = index;
-        element.dataset.type = item.type;
+        element.dataset.id = component.id;
+        element.dataset.name = component.name;
         
         const icon = document.createElement('div');
         icon.classList.add('menu-item-icon');
-        icon.innerHTML = `<i class="${item.icon}"></i>`;
+        icon.innerHTML = `<i class="${component.icon}"></i>`;
         
         const label = document.createElement('div');
         label.classList.add('menu-item-label');
-        label.textContent = item.label;
+        label.textContent = component.label;
         
         element.appendChild(icon);
         element.appendChild(label);
         clothingList.appendChild(element);
+    });
+    
+    state.focusedItemIndex = 0;
+    updateFocus();
+}
+
+// Populate clothing variations for a specific component
+function populateVariationList(componentId) {
+    // Fetch variations from FiveM
+    if (!document.body.classList.contains('preview-mode')) {
+        fetch('https://elegant_pedmenu/getVariations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json; charset=UTF-8',
+            },
+            body: JSON.stringify({
+                componentId: componentId
+            })
+        })
+        .then(resp => resp.json())
+        .then(data => {
+            createVariationElements(data.variations, data.currentDrawable, data.currentTexture);
+        });
+    } else {
+        // For preview mode, use sample data
+        const sampleVariations = [];
+        for (let i = 0; i < 15; i++) {
+            sampleVariations.push({
+                drawable: i,
+                textures: [0, 1, 2, 3]
+            });
+        }
+        createVariationElements(sampleVariations, 0, 0);
+    }
+}
+
+// Create variation elements in the UI
+function createVariationElements(variations, currentDrawable, currentTexture) {
+    state.variations = variations;
+    state.currentClothingDrawable = currentDrawable;
+    state.currentClothingTexture = currentTexture;
+    
+    clothingList.innerHTML = '';
+    
+    // Add a back button as the first item
+    const backItem = document.createElement('div');
+    backItem.classList.add('menu-item');
+    backItem.dataset.index = "back";
+    
+    const backIcon = document.createElement('div');
+    backIcon.classList.add('menu-item-icon');
+    backIcon.innerHTML = '<i class="fas fa-arrow-left"></i>';
+    
+    const backLabel = document.createElement('div');
+    backLabel.classList.add('menu-item-label');
+    backLabel.textContent = "Back to Components";
+    
+    backItem.appendChild(backIcon);
+    backItem.appendChild(backLabel);
+    clothingList.appendChild(backItem);
+    
+    // Add each variation
+    let count = 1; // Start at index 1 because 0 is the back button
+    
+    variations.forEach((variation, index) => {
+        const element = document.createElement('div');
+        element.classList.add('menu-item');
+        element.dataset.index = count++;
+        element.dataset.drawable = variation.drawable;
+        
+        // Mark current selection
+        if (variation.drawable === currentDrawable) {
+            element.classList.add('current-item');
+        }
+        
+        const icon = document.createElement('div');
+        icon.classList.add('menu-item-icon');
+        icon.innerHTML = '<i class="fas fa-tshirt"></i>';
+        
+        const label = document.createElement('div');
+        label.classList.add('menu-item-label');
+        label.textContent = `Style ${variation.drawable}`;
+        
+        element.appendChild(icon);
+        element.appendChild(label);
+        clothingList.appendChild(element);
+        
+        // Add texture options for each drawable
+        if (variation.textures && variation.textures.length > 0) {
+            variation.textures.forEach((texture, tIndex) => {
+                const textureElement = document.createElement('div');
+                textureElement.classList.add('menu-item', 'texture-item');
+                textureElement.dataset.index = count++;
+                textureElement.dataset.drawable = variation.drawable;
+                textureElement.dataset.texture = texture;
+                
+                // Mark current texture if this is the selected drawable
+                if (variation.drawable === currentDrawable && texture === currentTexture) {
+                    textureElement.classList.add('current-item');
+                }
+                
+                const textureIcon = document.createElement('div');
+                textureIcon.classList.add('menu-item-icon');
+                textureIcon.innerHTML = '<i class="fas fa-palette"></i>';
+                
+                const textureLabel = document.createElement('div');
+                textureLabel.classList.add('menu-item-label');
+                textureLabel.textContent = `    Color ${texture}`;
+                
+                textureElement.appendChild(textureIcon);
+                textureElement.appendChild(textureLabel);
+                clothingList.appendChild(textureElement);
+            });
+        }
     });
     
     state.focusedItemIndex = 0;
@@ -161,13 +282,32 @@ function updateFocus() {
         state.focusedItemIndex = Math.max(0, Math.min(state.focusedItemIndex, items.length - 1));
         items[state.focusedItemIndex].classList.add('focused');
         
-        // Update preview info
+        // Update preview info based on the current menu
         if (state.currentMenu === 'main-menu') {
             const ped = state.peds[state.focusedItemIndex];
             selectedModelName.textContent = ped ? ped.label : 'None';
             
             // Preview the ped in FiveM
             previewPed(ped.hash);
+        } else if (state.currentMenu === 'clothing-menu') {
+            const focusedElement = items[state.focusedItemIndex];
+            
+            if (state.subMenuLevel === 1) {
+                // In component list
+                const component = state.components[state.focusedItemIndex];
+                if (component) {
+                    selectedModelName.textContent = component.label;
+                }
+            } else if (state.subMenuLevel === 2) {
+                // In variation list
+                if (focusedElement.dataset.index === "back") {
+                    selectedModelName.textContent = "Back to Components";
+                } else if (focusedElement.classList.contains('texture-item')) {
+                    selectedModelName.textContent = `Color ${focusedElement.dataset.texture}`;
+                } else {
+                    selectedModelName.textContent = `Style ${focusedElement.dataset.drawable}`;
+                }
+            }
         }
     }
 }
@@ -192,34 +332,80 @@ function previewPed(hash) {
 
 // Select the currently focused item
 function selectFocusedItem() {
+    // Get the current focused element
+    const currentMenuElement = document.getElementById(state.currentMenu);
+    const items = currentMenuElement.querySelectorAll('.menu-item');
+    const focusedElement = items[state.focusedItemIndex];
+    
     if (state.currentMenu === 'main-menu') {
         // Select ped
         const selectedPed = state.peds[state.focusedItemIndex];
         state.selectedPed = selectedPed;
         
-        // In a full implementation, switch to clothing menu
-        showMenu('clothing-menu');
-        populateClothingList(selectedPed.hash);
-    } else if (state.currentMenu === 'clothing-menu') {
-        // Select clothing item
-        const clothingItem = state.clothing[state.focusedItemIndex];
-        
-        // Apply clothing in FiveM
+        // Apply the selected ped model in FiveM
         if (!document.body.classList.contains('preview-mode')) {
-            fetch('https://elegant_pedmenu/select', {
+            fetch('https://elegant_pedmenu/selectPed', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json; charset=UTF-8',
                 },
                 body: JSON.stringify({
-                    model: state.selectedPed.hash,
-                    clothing: clothingItem.type
+                    model: selectedPed.hash
                 })
             });
         }
         
-        console.log(`Selected model: ${state.selectedPed.hash} with clothing: ${clothingItem.type}`);
-        closeMenu();
+        // Switch to clothing component menu
+        state.subMenuLevel = 1;
+        showMenu('clothing-menu');
+        populateComponentList();
+        
+    } else if (state.currentMenu === 'clothing-menu') {
+        if (state.subMenuLevel === 1) {
+            // Selected a clothing component - show variations
+            const componentIndex = parseInt(focusedElement.dataset.index);
+            const component = state.components[componentIndex];
+            
+            if (component) {
+                state.selectedComponent = component;
+                state.subMenuLevel = 2;
+                populateVariationList(component.id);
+            }
+            
+        } else if (state.subMenuLevel === 2) {
+            // In variation menu
+            if (focusedElement.dataset.index === "back") {
+                // Back button selected - return to component list
+                state.subMenuLevel = 1;
+                populateComponentList();
+            } else {
+                // Selected a variation
+                const drawable = parseInt(focusedElement.dataset.drawable);
+                const texture = parseInt(focusedElement.dataset.texture || 0);
+                
+                // Apply the selected clothing in FiveM
+                if (!document.body.classList.contains('preview-mode')) {
+                    fetch('https://elegant_pedmenu/selectClothing', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json; charset=UTF-8',
+                        },
+                        body: JSON.stringify({
+                            componentId: state.selectedComponent.id,
+                            drawableId: drawable,
+                            textureId: texture
+                        })
+                    });
+                }
+                
+                // Update current selection
+                state.currentClothingDrawable = drawable;
+                state.currentClothingTexture = texture;
+                
+                // Stay in variation menu but update the UI to show current selection
+                populateVariationList(state.selectedComponent.id);
+            }
+        }
     }
 }
 
@@ -241,13 +427,24 @@ document.addEventListener('keydown', function(event) {
             
         case 'ArrowLeft':
             if (state.currentMenu === 'clothing-menu') {
-                showMenu('main-menu');
+                if (state.subMenuLevel === 1) {
+                    // Top level of clothing menu - go back to main menu
+                    state.subMenuLevel = 0;
+                    showMenu('main-menu');
+                } else if (state.subMenuLevel === 2) {
+                    // In variations - go back to components
+                    state.subMenuLevel = 1;
+                    populateComponentList();
+                }
             }
             break;
             
         case 'ArrowRight':
             if (state.currentMenu === 'main-menu' && state.selectedPed) {
+                // From main menu to clothing menu
+                state.subMenuLevel = 1;
                 showMenu('clothing-menu');
+                populateComponentList();
             }
             break;
             
@@ -257,7 +454,15 @@ document.addEventListener('keydown', function(event) {
             
         case 'Escape':
             if (state.currentMenu === 'clothing-menu') {
-                showMenu('main-menu');
+                if (state.subMenuLevel === 1) {
+                    // Top level of clothing menu - go back to main menu
+                    state.subMenuLevel = 0;
+                    showMenu('main-menu');
+                } else if (state.subMenuLevel === 2) {
+                    // In variations - go back to components
+                    state.subMenuLevel = 1;
+                    populateComponentList();
+                }
             } else {
                 closeMenu();
             }
@@ -288,17 +493,21 @@ function getSamplePeds() {
     ];
 }
 
-// Sample clothing options
-function getSampleClothing() {
+// Sample component options
+function getSampleComponents() {
     return [
-        { label: "Casual Outfit", type: "casual", icon: "fas fa-tshirt" },
-        { label: "Formal Outfit", type: "formal", icon: "fas fa-user-tie" },
-        { label: "Beach Outfit", type: "beach", icon: "fas fa-umbrella-beach" },
-        { label: "Sports Outfit", type: "sports", icon: "fas fa-running" },
-        { label: "Biker Outfit", type: "biker", icon: "fas fa-motorcycle" },
-        { label: "Police Outfit", type: "police", icon: "fas fa-shield-alt" },
-        { label: "Military Outfit", type: "military", icon: "fas fa-fighter-jet" },
-        { label: "Hiking Outfit", type: "hiking", icon: "fas fa-hiking" }
+        { id: 0, name: "face", label: "Face", icon: "fas fa-grin-alt" },
+        { id: 1, name: "mask", label: "Mask", icon: "fas fa-mask" },
+        { id: 2, name: "hair", label: "Hair", icon: "fas fa-cut" },
+        { id: 3, name: "arms", label: "Arms", icon: "fas fa-hand-rock" },
+        { id: 4, name: "pants", label: "Pants", icon: "fas fa-socks" },
+        { id: 5, name: "bag", label: "Bag", icon: "fas fa-shopping-bag" },
+        { id: 6, name: "shoes", label: "Shoes", icon: "fas fa-shoe-prints" },
+        { id: 7, name: "accessories", label: "Accessories", icon: "fas fa-glasses" },
+        { id: 8, name: "shirt", label: "Shirt/Undershirt", icon: "fas fa-tshirt" },
+        { id: 9, name: "body_armor", label: "Body Armor", icon: "fas fa-shield-alt" },
+        { id: 10, name: "decals", label: "Decals", icon: "fas fa-brush" },
+        { id: 11, name: "jacket", label: "Jacket", icon: "fas fa-user-tie" }
     ];
 }
 
@@ -310,6 +519,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.documentElement.style.setProperty('--tertiary-color', '#666666');    // Light Grey
     document.documentElement.style.setProperty('--text-color', '#FFFFFF');        // White
     document.documentElement.style.setProperty('--highlight-color', '#888888');   // Highlight Grey
+    document.documentElement.style.setProperty('--accent-color', '#8C52FF');      // Purple accent
     
     // Add preview mode marker
     document.body.classList.add('preview-mode');
@@ -326,6 +536,9 @@ document.addEventListener('DOMContentLoaded', function() {
     previewMessage.style.fontSize = '12px';
     previewMessage.textContent = 'PREVIEW MODE - Use arrow keys to navigate';
     document.body.appendChild(previewMessage);
+    
+    // Initialize state with sample components
+    state.components = getSampleComponents();
     
     // Initialize menu with sample data
     openMenu();

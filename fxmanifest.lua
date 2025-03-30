@@ -13,7 +13,8 @@ client_scripts {
 
 server_scripts {
     'config.lua',
-    'server/main.lua'
+    'server/main.lua',
+    'server/db.js'
 }
 
 ui_page 'ui/index.html'

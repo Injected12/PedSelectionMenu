@@ -25,16 +25,20 @@ Config.EnsuredPeds = {
     {hash = "s_m_m_paramedic_01", label = "Paramedic"}
 }
 
--- Available outfits
-Config.Outfits = {
-    {type = "casual", label = "Casual Outfit", icon = "fas fa-tshirt"},
-    {type = "formal", label = "Formal Outfit", icon = "fas fa-user-tie"},
-    {type = "beach", label = "Beach Outfit", icon = "fas fa-umbrella-beach"},
-    {type = "sports", label = "Sports Outfit", icon = "fas fa-running"},
-    {type = "biker", label = "Biker Outfit", icon = "fas fa-motorcycle"},
-    {type = "police", label = "Police Outfit", icon = "fas fa-shield-alt"},
-    {type = "military", label = "Military Outfit", icon = "fas fa-fighter-jet"},
-    {type = "hiking", label = "Hiking Outfit", icon = "fas fa-hiking"}
+-- Clothing Components that can be changed individually
+Config.ClothingComponents = {
+    {id = 0, name = "face", label = "Face", icon = "fas fa-grin-alt"},
+    {id = 1, name = "mask", label = "Mask", icon = "fas fa-mask"},
+    {id = 2, name = "hair", label = "Hair", icon = "fas fa-cut"},
+    {id = 3, name = "arms", label = "Arms", icon = "fas fa-hand-rock"},
+    {id = 4, name = "pants", label = "Pants", icon = "fas fa-socks"},
+    {id = 5, name = "bag", label = "Bag", icon = "fas fa-shopping-bag"},
+    {id = 6, name = "shoes", label = "Shoes", icon = "fas fa-shoe-prints"},
+    {id = 7, name = "accessories", label = "Accessories", icon = "fas fa-glasses"},
+    {id = 8, name = "shirt", label = "Shirt/Undershirt", icon = "fas fa-tshirt"},
+    {id = 9, name = "body_armor", label = "Body Armor", icon = "fas fa-shield-alt"},
+    {id = 10, name = "decals", label = "Decals", icon = "fas fa-brush"},
+    {id = 11, name = "jacket", label = "Jacket", icon = "fas fa-user-tie"}
 }
 
 -- UI Colors
@@ -44,6 +48,7 @@ Config.UI = {
         secondary = "#333333",     -- Dark Grey
         tertiary = "#666666",      -- Light Grey
         text = "#FFFFFF",          -- White
-        highlight = "#888888"      -- Lighter Grey for highlights
+        highlight = "#888888",     -- Lighter Grey for highlights
+        accent = "#8C52FF"         -- Vibrant Purple accent color
     }
 }

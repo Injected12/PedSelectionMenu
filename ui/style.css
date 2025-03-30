@@ -12,6 +12,7 @@
     --tertiary-color: #666666;   /* Light Grey */
     --text-color: #FFFFFF;       /* White */
     --highlight-color: #888888;  /* Lighter Grey for highlights */
+    --accent-color: #8C52FF;     /* Vibrant Purple accent color */
 }
 
 body {
@@ -36,13 +37,13 @@ body.preview-mode {
     transform: translateY(-50%);
     width: 300px;
     height: 80vh;
-    background-color: rgba(0, 0, 0, 0.7); /* More transparent */
+    background-color: rgba(0, 0, 0, 0.8); /* More transparent */
     border-radius: 0 10px 10px 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-    border: 1px solid var(--secondary-color);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7), 0 0 5px var(--accent-color);
+    border: 1px solid var(--accent-color);
 }
 
 /* Menu header */
@@ -51,14 +52,16 @@ body.preview-mode {
     flex-direction: column;
     padding: 10px 15px;
     background-color: var(--primary-color);
-    border-bottom: 2px solid var(--secondary-color);
+    border-bottom: 2px solid var(--accent-color);
+    position: relative;
 }
 
 .menu-header h1 {
-    color: var(--text-color);
+    color: var(--accent-color);
     font-size: 20px;
     font-weight: 600;
     margin-bottom: 5px;
+    text-shadow: 0 0 5px rgba(140, 82, 255, 0.5);
 }
 
 .key-controls {
@@ -116,14 +119,27 @@ body.preview-mode {
 
 .section-header {
     padding: 10px 15px;
-    border-bottom: 1px solid var(--secondary-color);
+    border-bottom: 1px solid var(--accent-color);
     background-color: var(--primary-color);
+    position: relative;
+}
+
+.section-header:after {
+    content: '';
+    position: absolute;
+    left: 15px;
+    bottom: 0;
+    width: 50px;
+    height: 2px;
+    background-color: var(--accent-color);
 }
 
 .section-header h2 {
-    color: var(--text-color);
+    color: var(--accent-color);
     font-size: 16px;
     font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Item list for peds/clothing */
@@ -143,14 +159,49 @@ body.preview-mode {
 }
 
 .menu-item.focused {
-    background-color: var(--secondary-color);
-    border-left: 3px solid var(--highlight-color);
+    background-color: rgba(140, 82, 255, 0.2);
+    border-left: 3px solid var(--accent-color);
+}
+
+.menu-item.focused .menu-item-label {
+    color: var(--accent-color);
+    font-weight: bold;
 }
 
 .menu-item-icon {
     font-size: 18px;
     margin-right: 10px;
     color: var(--highlight-color);
+}
+
+.menu-item.focused .menu-item-icon {
+    color: var(--accent-color);
+}
+
+.menu-item.current-item {
+    position: relative;
+}
+
+.menu-item.current-item:after {
+    content: '\f00c';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: var(--accent-color);
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.menu-item.texture-item {
+    padding-left: 30px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-left: 3px solid rgba(140, 82, 255, 0.1);
+}
+
+.menu-item.texture-item.focused {
+    background-color: rgba(140, 82, 255, 0.15);
+    border-left: 3px solid var(--accent-color);
 }
 
 .menu-item-label {
@@ -164,7 +215,19 @@ body.preview-mode {
 .preview-section {
     padding: 15px;
     background-color: var(--primary-color);
-    border-top: 1px solid var(--secondary-color);
+    border-top: 1px solid var(--accent-color);
+    position: relative;
+}
+
+.preview-section:before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 15px;
+    width: 10px;
+    height: 10px;
+    background-color: var(--accent-color);
+    transform: rotate(45deg);
 }
 
 .preview-section h3 {
@@ -179,9 +242,15 @@ body.preview-mode {
     font-size: 12px;
 }
 
+.preview-section p i {
+    color: var(--accent-color);
+    margin-right: 5px;
+}
+
 #selected-model-name {
-    color: var(--highlight-color);
+    color: var(--accent-color);
     font-weight: bold;
+    text-shadow: 0 0 3px rgba(140, 82, 255, 0.3);
 }
 
 /* Scrollbar styling */

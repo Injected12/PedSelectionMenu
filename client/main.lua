@@ -3,6 +3,7 @@
 -- Local variables
 local menuVisible = false
 local currentPed = nil
+local savedClothingData = {}
 
 -- Function to get ensured ped models
 function GetEnsuredPeds()
@@ -24,6 +25,22 @@ function GetEnsuredPeds()
     return ensuredPeds
 end
 
+-- Get clothing components from config
+function GetClothingComponents()
+    local components = {}
+    
+    for _, component in ipairs(Config.ClothingComponents) do
+        table.insert(components, {
+            id = component.id,
+            name = component.name,
+            label = component.label,
+            icon = component.icon
+        })
+    end
+    
+    return components
+end
+
 -- Function to open the menu
 function OpenPedMenu()
     menuVisible = true
@@ -31,10 +48,12 @@ function OpenPedMenu()
     
     -- Get only the ensured peds
     local peds = GetEnsuredPeds()
+    local components = GetClothingComponents()
     
     SendNUIMessage({
         type = "open",
         peds = peds,
+        components = components,
         colors = Config.UI.colors
     })
 end
@@ -120,10 +139,9 @@ RegisterNUICallback('preview', function(data, cb)
     end
 end)
 
--- Select a ped and outfit
-RegisterNUICallback('select', function(data, cb)
+-- Select a ped model
+RegisterNUICallback('selectPed', function(data, cb)
     local modelHash = data.model
-    local clothingType = data.clothing
     
     -- Clean up preview ped
     if currentPed then
@@ -132,76 +150,81 @@ RegisterNUICallback('select', function(data, cb)
     end
     
     -- Request to change ped model from server
-    TriggerServerEvent('elegant_pedmenu:setPedModel', modelHash, clothingType)
+    TriggerServerEvent('elegant_pedmenu:setPedModel', modelHash)
     
     cb('ok')
 end)
 
--- Apply a specific outfit to the current ped
-function ApplyOutfit(ped, outfitType)
-    -- Clear any previous outfit
-    ClearAllPedProps(ped)
-    SetPedComponentVariation(ped, 0, 0, 0, 2)  -- Face
-    SetPedComponentVariation(ped, 1, 0, 0, 2)  -- Mask
-    SetPedComponentVariation(ped, 2, 0, 0, 2)  -- Hair
-    SetPedComponentVariation(ped, 3, 0, 0, 2)  -- Torso
-    SetPedComponentVariation(ped, 4, 0, 0, 2)  -- Legs
-    SetPedComponentVariation(ped, 5, 0, 0, 2)  -- Hands/Parachute
-    SetPedComponentVariation(ped, 6, 0, 0, 2)  -- Feet
-    SetPedComponentVariation(ped, 7, 0, 0, 2)  -- Neck/Accessories
-    SetPedComponentVariation(ped, 8, 0, 0, 2)  -- Undershirt
-    SetPedComponentVariation(ped, 9, 0, 0, 2)  -- Body Armor
-    SetPedComponentVariation(ped, 10, 0, 0, 2) -- Decals
-    SetPedComponentVariation(ped, 11, 0, 0, 2) -- Torso 2
+-- Select a clothing component and variation
+RegisterNUICallback('selectClothing', function(data, cb)
+    local componentId = data.componentId
+    local drawableId = data.drawableId
+    local textureId = data.textureId or 0
     
-    -- Apply outfit based on type
-    if outfitType == "casual" then
-        -- Apply casual clothing
-        SetPedComponentVariation(ped, 3, 0, 0, 2)  -- Torso
-        SetPedComponentVariation(ped, 4, 1, 0, 2)  -- Legs (jeans)
-        SetPedComponentVariation(ped, 6, 1, 0, 2)  -- Feet (sneakers)
-        SetPedComponentVariation(ped, 8, 0, 0, 2)  -- Undershirt
-        SetPedComponentVariation(ped, 11, 0, 0, 2) -- Torso 2 (t-shirt)
-    elseif outfitType == "formal" then
-        -- Apply formal/suit clothing
-        SetPedComponentVariation(ped, 3, 1, 0, 2)  -- Torso
-        SetPedComponentVariation(ped, 4, 0, 0, 2)  -- Legs (suit pants)
-        SetPedComponentVariation(ped, 6, 3, 0, 2)  -- Feet (dress shoes)
-        SetPedComponentVariation(ped, 8, 0, 0, 2)  -- Undershirt
-        SetPedComponentVariation(ped, 11, 4, 0, 2) -- Torso 2 (suit jacket)
-    elseif outfitType == "beach" then
-        -- Apply beach clothing
-        SetPedComponentVariation(ped, 3, 15, 0, 2) -- Torso (bare)
-        SetPedComponentVariation(ped, 4, 15, 0, 2) -- Legs (shorts)
-        SetPedComponentVariation(ped, 6, 5, 0, 2)  -- Feet (sandals)
-        SetPedComponentVariation(ped, 11, 15, 0, 2) -- Torso 2 (bare/swim)
-    elseif outfitType == "sports" then
-        -- Apply sports clothing
-        SetPedComponentVariation(ped, 3, 5, 0, 2)  -- Torso
-        SetPedComponentVariation(ped, 4, 3, 0, 2)  -- Legs (track pants)
-        SetPedComponentVariation(ped, 6, 1, 0, 2)  -- Feet (sneakers)
-        SetPedComponentVariation(ped, 8, 0, 0, 2)  -- Undershirt
-        SetPedComponentVariation(ped, 11, 1, 0, 2) -- Torso 2 (track jacket)
-    elseif outfitType == "police" then
-        -- Apply police outfit
-        SetPedComponentVariation(ped, 3, 0, 0, 2)  -- Torso
-        SetPedComponentVariation(ped, 4, 35, 0, 2) -- Legs
-        SetPedComponentVariation(ped, 6, 25, 0, 2) -- Feet
-        SetPedComponentVariation(ped, 8, 58, 0, 2) -- Undershirt
-        SetPedComponentVariation(ped, 11, 55, 0, 2) -- Torso 2
-    else
-        -- Default outfit if none matched
-        SetPedComponentVariation(ped, 3, 0, 0, 2)  -- Torso
-        SetPedComponentVariation(ped, 4, 0, 0, 2)  -- Legs
-        SetPedComponentVariation(ped, 6, 0, 0, 2)  -- Feet
-        SetPedComponentVariation(ped, 8, 0, 0, 2)  -- Undershirt
-        SetPedComponentVariation(ped, 11, 0, 0, 2) -- Torso 2
+    -- Request to change clothing component from server
+    TriggerServerEvent('elegant_pedmenu:setClothingComponent', componentId, drawableId, textureId)
+    
+    cb('ok')
+end)
+
+-- Get available variations for a clothing component
+RegisterNUICallback('getVariations', function(data, cb)
+    local componentId = data.componentId
+    local pedModel = GetEntityModel(PlayerPedId())
+    
+    local variations = {}
+    local numDrawables = GetNumberOfPedDrawableVariations(PlayerPedId(), componentId)
+    
+    for i = 0, numDrawables - 1 do
+        local numTextures = GetNumberOfPedTextureVariations(PlayerPedId(), componentId, i)
+        
+        local textures = {}
+        for j = 0, numTextures - 1 do
+            table.insert(textures, j)
+        end
+        
+        table.insert(variations, {
+            drawable = i,
+            textures = textures
+        })
+    end
+    
+    cb({
+        variations = variations,
+        currentDrawable = GetPedDrawableVariation(PlayerPedId(), componentId),
+        currentTexture = GetPedTextureVariation(PlayerPedId(), componentId)
+    })
+end)
+
+-- Apply specific clothing component to the current ped
+function ApplyClothingComponent(componentId, drawableId, textureId)
+    local ped = PlayerPedId()
+    
+    -- Apply the component variation
+    SetPedComponentVariation(ped, componentId, drawableId, textureId or 0, 2)
+    
+    -- Notify the server that clothing was changed
+    TriggerServerEvent('elegant_pedmenu:clothingChanged', componentId, drawableId, textureId or 0)
+end
+
+-- Apply all saved clothing components to the current ped
+function ApplySavedClothing(ped)
+    -- Default all components to 0 first
+    for i = 0, 11 do
+        SetPedComponentVariation(ped, i, 0, 0, 2)
+    end
+    
+    -- Apply saved components if available
+    if savedClothingData and #savedClothingData > 0 then
+        for _, item in ipairs(savedClothingData) do
+            SetPedComponentVariation(ped, item.component_id, item.drawable_id, item.texture_id, 2)
+        end
     end
 end
 
 -- Event to change the player's model
 RegisterNetEvent('elegant_pedmenu:changePedModel')
-AddEventHandler('elegant_pedmenu:changePedModel', function(modelHash, clothingType)
+AddEventHandler('elegant_pedmenu:changePedModel', function(modelHash)
     -- Convert string to hash if it's not a number
     if type(modelHash) == 'string' then
         modelHash = GetHashKey(modelHash)
@@ -233,10 +256,8 @@ AddEventHandler('elegant_pedmenu:changePedModel', function(modelHash, clothingTy
         SetEntityCoords(newPed, pos.x, pos.y, pos.z, false, false, false, false)
         SetEntityHeading(newPed, heading)
         
-        -- Apply clothing if specified
-        if clothingType then
-            ApplyOutfit(newPed, clothingType)
-        end
+        -- Apply saved clothing if available
+        ApplySavedClothing(newPed)
         
         -- Clear any animations
         ClearPedTasksImmediately(newPed)
@@ -245,13 +266,51 @@ AddEventHandler('elegant_pedmenu:changePedModel', function(modelHash, clothingTy
         SetModelAsNoLongerNeeded(modelHash)
         
         -- Notify the server that model was changed
-        TriggerServerEvent('elegant_pedmenu:modelChanged', modelHash, clothingType)
+        TriggerServerEvent('elegant_pedmenu:modelChanged', modelHash)
         
         -- Show notification
         ShowNotification("Model changed successfully!")
     else
         ShowNotification("Failed to load model. Please try again.")
     end
+end)
+
+-- Event to update a specific clothing component
+RegisterNetEvent('elegant_pedmenu:updateClothingComponent')
+AddEventHandler('elegant_pedmenu:updateClothingComponent', function(componentId, drawableId, textureId)
+    ApplyClothingComponent(componentId, drawableId, textureId)
+    
+    -- Find and update in saved data
+    local found = false
+    for i, item in ipairs(savedClothingData) do
+        if item.component_id == componentId then
+            savedClothingData[i].drawable_id = drawableId
+            savedClothingData[i].texture_id = textureId
+            found = true
+            break
+        end
+    end
+    
+    -- Add to saved data if not found
+    if not found then
+        table.insert(savedClothingData, {
+            component_id = componentId,
+            drawable_id = drawableId,
+            texture_id = textureId
+        })
+    end
+    
+    ShowNotification("Clothing updated!")
+end)
+
+-- Event to load saved data from database
+RegisterNetEvent('elegant_pedmenu:loadSavedData')
+AddEventHandler('elegant_pedmenu:loadSavedData', function(modelHash, clothingData)
+    -- Save clothing data for later use
+    savedClothingData = clothingData or {}
+    
+    -- Change the model (which will also apply saved clothing)
+    TriggerEvent('elegant_pedmenu:changePedModel', modelHash)
 end)
 
 -- Helper function for notifications
@@ -269,4 +328,8 @@ AddEventHandler('onClientResourceStart', function(resourceName)
     
     -- Pre-load some common animations
     RequestAnimDict("mini@strip_club@idles@bouncer@base")
+    
+    -- Don't auto-open the menu, just request saved data
+    Wait(1000) -- Wait a bit for everything to initialize
+    TriggerServerEvent('elegant_pedmenu:requestSavedData')
 end)
