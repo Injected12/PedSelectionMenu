@@ -1,0 +1,38 @@
+modules = ["lua", "python-3.11"]
+
+[nix]
+channel = "stable-24_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "FiveMPedMenuServer"
+
+[[workflows.workflow]]
+name = "FiveMPedMenuServer"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd ui && python -m http.server 5000"
+waitForPort = 5000
+
+[deployment]
+run = ["sh", "-c", "cd $(pwd) && python -m http.server 5000"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80

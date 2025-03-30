@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiveM Ped Menu</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="ped-menu">
+        <div class="menu-header">
+            <h1>Character Models</h1>
+            <button id="close-button"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <div class="menu-content">
+            <div class="categories">
+                <div class="categories-header">
+                    <h2>Categories</h2>
+                </div>
+                <div id="category-list" class="category-list">
+                    <!-- Categories will be populated here -->
+                </div>
+            </div>
+            
+            <div class="models">
+                <div class="models-header">
+                    <h2 id="current-category">Select a Category</h2>
+                    <div class="search-container">
+                        <input type="text" id="search-input" placeholder="Search models...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+                <div id="model-list" class="model-list">
+                    <!-- Models will be populated here -->
+                </div>
+            </div>
+            
+            <div class="preview">
+                <div class="preview-header">
+                    <h2>Preview</h2>
+                </div>
+                <div class="preview-content">
+                    <div id="preview-info">
+                        <p>No model selected</p>
+                    </div>
+                    <div class="preview-actions">
+                        <button id="select-button" class="action-button" disabled>Select Model</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
